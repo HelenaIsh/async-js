@@ -4,38 +4,55 @@ const API = {
     orgReqs: '/api3/reqBase',
     buhForms: '/api3/buh',
 };
+// unction run() {
+//     sendRequest(API.organizationList, (orgOgrns) => {
+//         const ogrns = orgOgrns.join(',');
+//         sendRequest(`${API.orgReqs}?ogrn=${ogrns}`, (requisites) => {
+//             const orgsMap = reqsToMap(requisites);
+//             sendRequest(`${API.analytics}?ogrn=${ogrns}`, (analytics) => {
+//                 addInOrgsMap(orgsMap, analytics, 'analytics');
+//                 sendRequest(`${API.buhForms}?ogrn=${ogrns}`, (buh) => {
+//                     addInOrgsMap(orgsMap, buh, 'buhForms');
+//                     render(orgsMap, orgOgrns);
+//                 });
+//             });
+//         });
+//     });
+// }
+async function run() {
 
-function run() {
-    sendRequest(API.organizationList, (orgOgrns) => {
-        const ogrns = orgOgrns.join(',');
-        sendRequest(`${API.orgReqs}?ogrn=${ogrns}`, (requisites) => {
-            const orgsMap = reqsToMap(requisites);
-            sendRequest(`${API.analytics}?ogrn=${ogrns}`, (analytics) => {
-                addInOrgsMap(orgsMap, analytics, 'analytics');
-                sendRequest(`${API.buhForms}?ogrn=${ogrns}`, (buh) => {
-                    addInOrgsMap(orgsMap, buh, 'buhForms');
-                    render(orgsMap, orgOgrns);
-                });
-            });
-        });
-    });
+    const ogrns =  (await sendRequest(API.organizationList)).join(',');
+
+
+    const orgsMap = reqsToMap(await sendRequest(`${API.orgReqs}?ogrn=${ogrns}`));
+    addInOrgsMap(orgsMap, await sendRequest(`${API.analytics}?ogrn=${ogrns}`), 'analytics');
+    addInOrgsMap(orgsMap, await sendRequest(`${API.buhForms}?ogrn=${ogrns}`), 'buhForms');
+    render(orgsMap, await sendRequest(API.organizationList));
+
 }
 
 run();
 
-function sendRequest (url, callback) {
-    const xhr = new XMLHttpRequest();
-    xhr.open('GET', url, true);
+function sendRequest (url) {
+    //const xhr = new XMLHttpRequest();
+    //xhr.open('GET', url, true);
+    return fetch(url).then(response => response.json());
 
-    xhr.onreadystatechange = function() {
-        if(xhr.readyState === XMLHttpRequest.DONE) {
-            if (xhr.status === 200) {
-                callback(JSON.parse(xhr.response));
-            }
-        }
-    };
-
-    xhr.send();
+    // return new Promise(resolve => {
+    //     // fetch(url, {
+    //     //     body: JSON.stringify({date: new Date(), name: 'Veronika'}),
+    //     //     method: 'POST',
+    //     //
+    //     // }).then(response => response.json());
+    //     xhr.onreadystatechange = function() {
+    //         if(xhr.readyState === XMLHttpRequest.DONE) {
+    //             if (xhr.status === 200) {
+    //                 resolve(JSON.parse(xhr.response));
+    //             }
+    //         }
+    //     };
+    //     xhr.send();
+    // });
 }
 
 function reqsToMap (requisites) {
